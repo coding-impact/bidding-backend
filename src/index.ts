@@ -62,7 +62,7 @@ import { handleLogin } from "./route/login";
 import { setSetting } from "./utils";
 // import { Env } from "./utils";
 
-async function handleRequest(pathname: string, searchParams: URLSearchParams, body: any, env: Env): Promise<Response> {
+async function handleRequest(request: Request, pathname: string, searchParams: URLSearchParams, body: any, env: Env): Promise<Response> {
 	// 	const origin = request.headers.get('Origin');
 	//   if (origin === 'http://localhost' || origin === 'https://example.com') {
 	//     response = new Response(response.body, response);
@@ -70,6 +70,10 @@ async function handleRequest(pathname: string, searchParams: URLSearchParams, bo
 	//   }
 
 	//   return response;
+	const { method } = request;
+	if (method == 'OPTIONS') {
+		return new Response(null, { status: 204 })
+	}
 	if (pathname == '/api/bidding') {
 		return await handleBid(searchParams, body, env);
 
@@ -86,6 +90,8 @@ export default {
 		// let value = await env.DB.put('test', JSON.stringify({}));
 		// await env.DB.put('setting', JSON.stringify({"epoch": 0, "text": "當競標時間結束時，出價最高者將可得到點數。", "enable": false}));
 		// await setSetting(env, 'enable', true)
+
+
 		const url = new URL(request.url);
 		const { pathname, searchParams } = url;
 		console.log(pathname)
@@ -102,7 +108,7 @@ export default {
 
 
 		// return Payload.success({ message: '成孤獲得', data: pathname })
-		let res = await handleRequest(pathname, searchParams, body, env);
+		let res = await handleRequest(request, pathname, searchParams, body, env);
 		const origin = request.headers.get('Origin');
 		if (origin === 'http://localhost:3000' || origin === 'https://bidding.kulimi.workers.dev') {
 			console.log(origin)

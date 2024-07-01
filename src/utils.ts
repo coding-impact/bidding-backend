@@ -2,8 +2,12 @@
 
 
 async function getRawSetting(env: Env) {
-
-	return JSON.parse(await env.DB.get('setting') as string);
+	let settingString = '{"epoch": 0, "text": "當競標時間結束時，出價最高者將可得到點數。", "enable": false}'
+	const settingValue = await env.DB.get('setting')
+	if (settingValue != null) {
+		settingString = settingValue
+	}
+	return JSON.parse(settingString);
 }
 
 export async function getSetting(env: Env, key: string) {
