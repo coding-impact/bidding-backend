@@ -19,7 +19,8 @@
 	username: string,
 	passwordHash: string,
 	salt: string,
-	isAdmin: boolean
+	isAdmin: boolean,
+	token: string
 }
 `bidding_<epoch>_<index>`: {
 	name: string,
@@ -60,8 +61,19 @@ GET /api/admin/setting
 import { Payload } from "./model";
 import { handleBid } from "./route/bidding";
 import { handleLogin } from "./route/login";
-import { setSetting } from "./utils";
+import { generateToken, hashPassword, setSetting } from "./utils";
 // import { Env } from "./utils";
+
+async function addUser(env:Env, name: string, password: string, isAdmin: boolean = false) {
+	const { salt, hash } = hashPassword(password);
+	await env.DB.put(`user_${name}`, JSON.stringify({
+		username: name,
+		passwordHash: hash,
+		salt: salt,
+		isAdmin: isAdmin,
+		token: generateToken()
+	}))
+}
 
 async function handleRequest(request: Request, pathname: string, searchParams: URLSearchParams, body: any, env: Env): Promise<Response> {
 	// 	const origin = request.headers.get('Origin');
@@ -71,6 +83,7 @@ async function handleRequest(request: Request, pathname: string, searchParams: U
 	//   }
 
 	//   return response;
+	
 	const { method } = request;
 	if (method == 'OPTIONS') {
 		return new Response(null, { status: 204 })

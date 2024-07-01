@@ -12,6 +12,14 @@ export function hashPassword(password: string): { salt: string, hash: string } {
 	return { salt, hash };
   }
 
+export function generateToken() {
+	const array = new Uint8Array(128);
+	crypto.getRandomValues(array);
+	const hexCode = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+
+	return hexCode.toUpperCase();
+}
+
 export function generateVerificationCode() {
 	const array = new Uint8Array(3);
 	crypto.getRandomValues(array);
