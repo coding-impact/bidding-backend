@@ -1,19 +1,46 @@
 
+import { pbkdf2Sync, randomBytes } from 'node:crypto';
 
+export function verifyPassword(password: string, salt: string, hash: string): boolean {
+	const hashToVerify = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+	return hash === hashToVerify;
+  }
+
+export function hashPassword(password: string): { salt: string, hash: string } {
+	const salt = randomBytes(16).toString('hex'); // Generate a random salt
+	const hash = pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex'); // Hash the password
+	return { salt, hash };
+  }
+
+export function generateVerificationCode() {
+	const array = new Uint8Array(3);
+	crypto.getRandomValues(array);
+	const hexCode = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+
+	return hexCode.toUpperCase();
+}
+
+const defaultSetting: any = { "epoch": 0, "text": "當競標時間結束時，出價最高者將可得到點數。", "enable": false, "index": 0 }
 
 async function getRawSetting(env: Env) {
-	let settingString = '{"epoch": 0, "text": "當競標時間結束時，出價最高者將可得到點數。", "enable": false}'
 	const settingValue = await env.DB.get('setting')
 	if (settingValue != null) {
-		settingString = settingValue
+
+		return JSON.parse(settingValue);
 	}
-	return JSON.parse(settingString);
+	return defaultSetting
 }
 
 export async function getSetting(env: Env, key: string) {
 	const setting = await getRawSetting(env);
 	console.log(setting)
-	return setting[key]
+	if (Object.keys(setting).includes(key)) {
+
+		return setting[key]
+	}
+	else {
+		return defaultSetting[key]
+	}
 }
 
 export async function setSetting(env: Env, key: string, value: any) {

@@ -17,8 +17,9 @@
 
 `user_<username>`: {
 	username: string,
-	passwordHash: string
-
+	passwordHash: string,
+	salt: string,
+	isAdmin: boolean
 }
 `bidding_<epoch>_<index>`: {
 	name: string,
