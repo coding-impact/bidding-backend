@@ -34,7 +34,7 @@ POST /api/bid
 - resposne:
 	Payload.success({index: index, verificationCode: string})
 
-POST /api/admin/login
+POST /api/login
 - body: 
 	{username: string, password: string}
 - response:
@@ -44,13 +44,32 @@ POST /api/admin/login
 從 金額最高的開始
 	叫編號，來認領交易，並確認驗證碼一致
 
+GET /api/admin/setting
+
 
 */
 
 import { Payload } from "./model";
+import { handleBid } from "./route/bidding";
 
+async function handleRequest(pathname: string, searchParams: URLSearchParams, body: any): Promise<Response> {
+	// 	const origin = request.headers.get('Origin');
+	//   if (origin === 'http://localhost' || origin === 'https://example.com') {
+	//     response = new Response(response.body, response);
+	//     response.headers.set('Access-Control-Allow-Origin', origin);
+	//   }
 
+	//   return response;
+	if (pathname == '/bid') {
+		return await handleBid(searchParams, body);
 
+	}
+	else if (pathname == '/login') {
+		return await handleBid(searchParams, body);
+	}
+	return Payload.error({ message: '未知的路徑' })
+
+}
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
@@ -64,13 +83,26 @@ export default {
 		try {
 			body = await request.json();
 		} catch (error) {
-			
+
 
 		}
 		console.log(body)
 
 
 
-		return Payload.success({ message: '成孤獲得', data: pathname })
+		// return Payload.success({ message: '成孤獲得', data: pathname })
+		let res = await handleRequest(pathname, searchParams, body);
+		const origin = request.headers.get('Origin');
+		if (origin === 'http://localhost:3000' || origin === 'https://bidding.kulimi.workers.dev') {
+			console.log(origin)
+			res.headers.set('Access-Control-Allow-Headers', 'Authorization')
+			res.headers.set('Vary', 'Origin')
+			res.headers.set('Access-Control-Allow-Credentials', 'true');
+			res.headers.set('Access-Control-Allow-Origin', origin);
+			res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+			res.headers.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+		}
+
+		return res;
 	},
 } satisfies ExportedHandler<Env>;
