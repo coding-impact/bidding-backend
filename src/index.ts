@@ -149,7 +149,7 @@ async function handleRequest(request: Request, pathname: string, searchParams: U
 	}
 	else if (pathname == '/api/setting') {
 		const res = await isAdmin(request, env)
-		if (res) {
+		if (res == true) {
 			return await handleSetting(method, searchParams, body, env)
 		}
 		else {
@@ -158,7 +158,7 @@ async function handleRequest(request: Request, pathname: string, searchParams: U
 	}
 	else if (pathname == '/api/listBid') {
 		const res = await isAdmin(request, env)
-		if (res) {
+		if (res == true) {
 			return await handleListBid(method, searchParams, body, env)
 		}
 		else {
