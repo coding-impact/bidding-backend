@@ -194,7 +194,7 @@ export default {
 		// return Payload.success({ message: '成孤獲得', data: pathname })
 		let res = await handleRequest(request, pathname, searchParams, body, env);
 		const origin = request.headers.get('Origin');
-		if (origin === 'http://localhost:3000' || origin === 'https://bidding.kulimi.workers.dev') {
+		if (origin === 'http://localhost:3000' || origin === 'https://bidding.kulimi.workers.dev' || origin === 'https://bidding-coding-impact.pages.dev') {
 			console.log(origin)
 			res.headers.set('Access-Control-Allow-Headers', 'Authorization')
 			res.headers.set('Vary', 'Origin')
