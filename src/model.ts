@@ -1,4 +1,5 @@
 
+
 type payloadOption = { message?: string, data?: any }
 
 
@@ -22,9 +23,4 @@ export class Payload {
 		let payload = new Payload('error', option.message, option.data);
 		return Response.json(payload);
 	}
-}
-
-export class Setting {
-	epoch: number = 0;
-	text: string = '當競標時間結束時，出價最高者將可得到點數。';
 }

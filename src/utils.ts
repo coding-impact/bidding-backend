@@ -1,7 +1,23 @@
 
-interface Env {
-	DB: KVNamespace;
+
+
+async function getRawSetting(env: Env) {
+
+	return JSON.parse(await env.DB.get('setting') as string);
 }
+
+export async function getSetting(env: Env, key: string) {
+	const setting = await getRawSetting(env);
+	console.log(setting)
+	return setting[key]
+}
+
+export async function setSetting(env: Env, key: string, value: any) {
+	const setting = await getRawSetting(env)
+	setting[key] = value
+	await env.DB.put('setting', JSON.stringify(setting))
+}
+
 
 export async function list(env: Env, prefix: string): Promise<any[]> {
 	const return_list: any[] = []

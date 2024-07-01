@@ -26,6 +26,13 @@
 	verificationCode: string,
 }
 
+
+setting: {
+	epoch: number,
+	text: string,
+	enable: boolean
+}
+
 # API
 
 POST /api/bid
@@ -51,8 +58,11 @@ GET /api/admin/setting
 
 import { Payload } from "./model";
 import { handleBid } from "./route/bidding";
+import { handleLogin } from "./route/login";
+import { setSetting } from "./utils";
+// import { Env } from "./utils";
 
-async function handleRequest(pathname: string, searchParams: URLSearchParams, body: any): Promise<Response> {
+async function handleRequest(pathname: string, searchParams: URLSearchParams, body: any, env: Env): Promise<Response> {
 	// 	const origin = request.headers.get('Origin');
 	//   if (origin === 'http://localhost' || origin === 'https://example.com') {
 	//     response = new Response(response.body, response);
@@ -60,12 +70,12 @@ async function handleRequest(pathname: string, searchParams: URLSearchParams, bo
 	//   }
 
 	//   return response;
-	if (pathname == '/bid') {
-		return await handleBid(searchParams, body);
+	if (pathname == '/api/bidding') {
+		return await handleBid(searchParams, body, env);
 
 	}
-	else if (pathname == '/login') {
-		return await handleBid(searchParams, body);
+	else if (pathname == '/api/login') {
+		return await handleLogin(searchParams, body, env);
 	}
 	return Payload.error({ message: '未知的路徑' })
 
@@ -74,7 +84,8 @@ async function handleRequest(pathname: string, searchParams: URLSearchParams, bo
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		// let value = await env.DB.put('test', JSON.stringify({}));
-		// await env.DB.put('tes2', JSON.stringify({ '1fdf': 213 }));
+		// await env.DB.put('setting', JSON.stringify({"epoch": 0, "text": "當競標時間結束時，出價最高者將可得到點數。", "enable": false}));
+		// await setSetting(env, 'enable', true)
 		const url = new URL(request.url);
 		const { pathname, searchParams } = url;
 		console.log(pathname)
@@ -91,7 +102,7 @@ export default {
 
 
 		// return Payload.success({ message: '成孤獲得', data: pathname })
-		let res = await handleRequest(pathname, searchParams, body);
+		let res = await handleRequest(pathname, searchParams, body, env);
 		const origin = request.headers.get('Origin');
 		if (origin === 'http://localhost:3000' || origin === 'https://bidding.kulimi.workers.dev') {
 			console.log(origin)
