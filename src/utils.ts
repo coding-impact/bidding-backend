@@ -30,7 +30,7 @@ export function generateVerificationCode() {
 
 const defaultSetting: any = { "epoch": 0, "text": "當競標時間結束時，出價最高者將可得到點數。", "enable": false, "index": 0 }
 
-async function getRawSetting(env: Env) {
+export async function getRawSetting(env: Env) {
 	const settingValue = await env.DB.get('setting')
 	if (settingValue != null) {
 

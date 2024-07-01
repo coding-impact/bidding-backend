@@ -26,6 +26,7 @@
 	name: string,
 	bidding: number,
 	verificationCode: string,
+	index: index
 }
 
 
@@ -50,21 +51,29 @@ POST /api/login
 	setCookie: token
 
 
+GET /api/setting
+
+POST /api/setting
+
+GET /api/listBid
+
+GET /api/text
+
 從 金額最高的開始
 	叫編號，來認領交易，並確認驗證碼一致
 
-GET /api/admin/setting
 
 
 */
 
 import { Payload } from "./model";
-import { handleBid } from "./route/bidding";
+import { handleListBid, handleSetting } from "./route/admin";
+import { handleBid, handleGetText } from "./route/bidding";
 import { handleLogin } from "./route/login";
-import { generateToken, hashPassword, setSetting } from "./utils";
+import { generateToken, getSetting, hashPassword, setSetting } from "./utils";
 // import { Env } from "./utils";
 
-async function addUser(env:Env, name: string, password: string, isAdmin: boolean = false) {
+async function addUser(env: Env, name: string, password: string, isAdmin: boolean = false) {
 	const { salt, hash } = hashPassword(password);
 	await env.DB.put(`user_${name}`, JSON.stringify({
 		username: name,
@@ -75,6 +84,46 @@ async function addUser(env:Env, name: string, password: string, isAdmin: boolean
 	}))
 }
 
+function parseCookies(cookieHeader: string | null): { [key: string]: string } {
+	const cookies: { [key: string]: string } = {};
+	if (cookieHeader) {
+		cookieHeader.split(';').forEach(cookie => {
+			const [name, ...rest] = cookie.trim().split('=');
+			cookies[name] = decodeURIComponent(rest.join('='));
+		});
+	}
+	return cookies;
+}
+
+async function isAdmin(request: Request, env: Env) {
+	const cookie = request.headers.get('Cookie');
+	const token = parseCookies(cookie)['token'];
+	const username = parseCookies(cookie)['username'];
+	if (!(token && token.length != 0 && username && username.length != 0)) {
+		return Payload.error({ message: "需要登入才能存取此資訊" })
+
+	}
+	const userString = await env.DB.get(`user_${username}`)
+	if (userString == null) {
+		return Payload.error({ message: "不合法的登入資訊" })
+	}
+
+	const user = JSON.parse(userString);
+	if (user.token != token) {
+		return Payload.error({ message: "不合法的登入資訊" })
+
+	}
+	if (!user.isAdmin) {
+
+		return Payload.error({ message: "只有管理員才能存取此資訊" })
+
+	}
+	return true
+
+
+
+}
+
 async function handleRequest(request: Request, pathname: string, searchParams: URLSearchParams, body: any, env: Env): Promise<Response> {
 	// 	const origin = request.headers.get('Origin');
 	//   if (origin === 'http://localhost' || origin === 'https://example.com') {
@@ -83,17 +132,38 @@ async function handleRequest(request: Request, pathname: string, searchParams: U
 	//   }
 
 	//   return response;
-	
+
 	const { method } = request;
 	if (method == 'OPTIONS') {
 		return new Response(null, { status: 204 })
 	}
 	if (pathname == '/api/bidding') {
-		return await handleBid(searchParams, body, env);
+		return await handleBid(searchParams, body, env)
 
 	}
 	else if (pathname == '/api/login') {
-		return await handleLogin(searchParams, body, env);
+		return await handleLogin(searchParams, body, env)
+	}
+	else if (pathname == '/api/text') {
+		return await handleGetText(searchParams, body, env)
+	}
+	else if (pathname == '/api/setting') {
+		const res = await isAdmin(request, env)
+		if (res) {
+			return await handleSetting(method, searchParams, body, env)
+		}
+		else {
+			return res
+		}
+	}
+	else if (pathname == '/api/listBid') {
+		const res = await isAdmin(request, env)
+		if (res) {
+			return await handleListBid(method, searchParams, body, env)
+		}
+		else {
+			return res
+		}
 	}
 	return Payload.error({ message: '未知的路徑' })
 

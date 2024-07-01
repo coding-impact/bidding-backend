@@ -44,7 +44,8 @@ export async function handleBid(searchParams: URLSearchParams, body: any, env: E
     await env.DB.put(`bidding_${epoch}_${index}`, JSON.stringify({
         name: body.name,
         bidding: body.bidding,
-        verificationCode: verificationCode
+        verificationCode: verificationCode,
+        index: index
     }))
     await setSetting(env, 'index', index + 1);
 
@@ -55,4 +56,9 @@ export async function handleBid(searchParams: URLSearchParams, body: any, env: E
             verificationCode: verificationCode
         }
     })
+}
+
+export async function handleGetText(searchParams: URLSearchParams, body: any, env: Env): Promise<Response> {
+    const text = await getSetting(env, 'text');
+    return Payload.success({ message: "成功獲得目前內文", data: text })
 }
